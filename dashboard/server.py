@@ -93,63 +93,139 @@ def api_market_data(instrument):
 
 @app.route('/api/signal/<instrument>')
 def api_signal(instrument):
-    """Generate trading signal"""
+    """Generate trading signal based on technical indicators"""
     try:
         df = get_market_data(instrument.upper(), days=30)
-        if df is None or len(df) < 25:
+        if df is None or len(df) < 10:
             return jsonify({'error': 'Insufficient data', 'signal': None})
         
-        feature_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
-        env = TradingEnvironment(df, feature_columns=feature_cols)
+        latest = df.iloc[-1]
+        current_price = float(latest['close'])
         
-        # Walk to latest state
-        state, _ = env.reset()
-        while env.current_step < len(df) - 1:
-            _, _, done, trunc, _ = env.step(0)
-            if done or trunc:
-                break
-        state = env._get_observation()
+        # Rule-based signal generation
+        reasoning = []
+        bullish_score = 0
+        bearish_score = 0
         
-        # Load agent
-        model_path = os.path.join(MODELS_DIR, f'{instrument.lower()}_agent_final.pt')
-        if not os.path.exists(model_path):
-            model_path = os.path.join(MODELS_DIR, 'best_model.pt')
+        # RSI Analysis
+        if 'rsi' in df.columns:
+            rsi = float(latest['rsi'])
+            if rsi < 30:
+                bullish_score += 2
+                reasoning.append(f'RSI oversold ({rsi:.1f})')
+            elif rsi < 40:
+                bullish_score += 1
+                reasoning.append(f'RSI approaching oversold ({rsi:.1f})')
+            elif rsi > 70:
+                bearish_score += 2
+                reasoning.append(f'RSI overbought ({rsi:.1f})')
+            elif rsi > 60:
+                bearish_score += 1
+                reasoning.append(f'RSI approaching overbought ({rsi:.1f})')
         
-        if not os.path.exists(model_path):
-            return jsonify({'error': 'No trained model found', 'signal': None})
+        # MACD Analysis
+        if 'macd_crossover' in df.columns:
+            macd_cross = int(latest['macd_crossover'])
+            if macd_cross == 1:
+                bullish_score += 2
+                reasoning.append('MACD bullish crossover')
+            elif macd_cross == -1:
+                bearish_score += 2
+                reasoning.append('MACD bearish crossover')
         
-        agent = DQNAgent(len(state), 4)
-        agent.load(model_path)
+        # Moving Average Trend
+        if 'ma_trend' in df.columns:
+            trend = int(latest['ma_trend'])
+            if trend == 1:
+                bullish_score += 1
+                reasoning.append('Price above EMA trend')
+            else:
+                bearish_score += 1
+                reasoning.append('Price below EMA trend')
         
-        # Generate signal
-        signal_gen = SignalGenerator(agent)
-        signal = signal_gen.generate_signal(state, df, instrument.upper())
+        # Bollinger Band Position
+        if 'bb_position' in df.columns:
+            bb_pos = float(latest['bb_position'])
+            if bb_pos < 0.2:
+                bullish_score += 1
+                reasoning.append('Price near lower Bollinger Band')
+            elif bb_pos > 0.8:
+                bearish_score += 1
+                reasoning.append('Price near upper Bollinger Band')
         
-        if signal:
-            return jsonify({
-                'signal': {
-                    'action': signal.action,
-                    'confidence': round(signal.confidence * 100, 1),
-                    'entry': round(signal.entry_price, 2),
-                    'stopLoss': round(signal.stop_loss, 2),
-                    'target1': round(signal.target_1, 2),
-                    'target2': round(signal.target_2, 2),
-                    'riskReward': round(signal.risk_reward, 2),
-                    'reasoning': signal.reasoning,
-                    'timestamp': signal.timestamp
-                }
-            })
+        # Stochastic
+        if 'stoch_signal' in df.columns:
+            stoch = int(latest['stoch_signal'])
+            if stoch == 1:
+                bullish_score += 1
+                reasoning.append('Stochastic bullish')
+            elif stoch == -1:
+                bearish_score += 1
+                reasoning.append('Stochastic bearish')
+        
+        # Pattern signals
+        if 'pattern_net_signal' in df.columns:
+            pattern = float(latest['pattern_net_signal'])
+            if pattern > 0.5:
+                bullish_score += 1
+                reasoning.append(f'Bullish candlestick pattern')
+            elif pattern < -0.5:
+                bearish_score += 1
+                reasoning.append('Bearish candlestick pattern')
+        
+        # Calculate ATR for stops/targets
+        atr = float(latest['atr']) if 'atr' in df.columns else current_price * 0.01
+        
+        # Determine signal
+        total_score = bullish_score - bearish_score
+        
+        if total_score >= 3:
+            action = 'BUY'
+            confidence = min(90, 50 + total_score * 10)
+            stop_loss = current_price - (atr * 1.5)
+            target_1 = current_price + (atr * 2)
+            target_2 = current_price + (atr * 3)
+        elif total_score <= -3:
+            action = 'SELL'
+            confidence = min(90, 50 + abs(total_score) * 10)
+            stop_loss = current_price + (atr * 1.5)
+            target_1 = current_price - (atr * 2)
+            target_2 = current_price - (atr * 3)
         else:
-            return jsonify({
-                'signal': {
-                    'action': 'HOLD',
-                    'confidence': 0,
-                    'reasoning': ['No high-confidence signal at this time'],
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                }
-            })
+            action = 'HOLD'
+            confidence = 0
+            stop_loss = target_1 = target_2 = current_price
+            if not reasoning:
+                reasoning = ['No clear directional signal - wait for better setup']
+        
+        # Calculate risk/reward
+        risk = abs(current_price - stop_loss)
+        reward = abs(target_1 - current_price)
+        risk_reward = reward / risk if risk > 0 else 0
+        
+        return jsonify({
+            'signal': {
+                'action': action,
+                'confidence': confidence,
+                'entry': round(current_price, 2),
+                'stopLoss': round(stop_loss, 2),
+                'target1': round(target_1, 2),
+                'target2': round(target_2, 2),
+                'riskReward': round(risk_reward, 2),
+                'reasoning': reasoning,
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
     except Exception as e:
-        return jsonify({'error': str(e), 'signal': None}), 500
+        print(f"Signal error: {e}")
+        return jsonify({
+            'signal': {
+                'action': 'HOLD',
+                'confidence': 0,
+                'reasoning': [f'Analysis pending: {str(e)[:50]}'],
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
 
 @app.route('/api/indicators/<instrument>')
 def api_indicators(instrument):
