@@ -308,6 +308,68 @@ async function loadChartData() {
             })));
         }
 
+        // Add signal markers on the chart
+        try {
+            const signalResponse = await fetch(`${API_BASE}/api/signal/${currentInstrument}`);
+            const signalData = await signalResponse.json();
+
+            if (signalData.signal && signalData.signal.action !== 'HOLD') {
+                const signal = signalData.signal;
+                const lastTime = new Date(data.timestamps[data.timestamps.length - 1]).getTime() / 1000;
+
+                // Entry line (current price)
+                candleSeries.createPriceLine({
+                    price: signal.entry,
+                    color: signal.action === 'BUY' ? '#00d4aa' : '#ff4757',
+                    lineWidth: 2,
+                    lineStyle: 0, // Solid
+                    axisLabelVisible: true,
+                    title: `${signal.action} Entry`,
+                });
+
+                // Stop Loss line
+                candleSeries.createPriceLine({
+                    price: signal.stopLoss,
+                    color: '#ff4757',
+                    lineWidth: 1,
+                    lineStyle: 2, // Dashed
+                    axisLabelVisible: true,
+                    title: 'Stop Loss',
+                });
+
+                // Target 1 line
+                candleSeries.createPriceLine({
+                    price: signal.target1,
+                    color: '#00d4aa',
+                    lineWidth: 1,
+                    lineStyle: 2, // Dashed
+                    axisLabelVisible: true,
+                    title: 'Target 1',
+                });
+
+                // Target 2 line
+                candleSeries.createPriceLine({
+                    price: signal.target2,
+                    color: '#00d4aa',
+                    lineWidth: 1,
+                    lineStyle: 2, // Dashed
+                    axisLabelVisible: true,
+                    title: 'Target 2',
+                });
+
+                // Add marker at the signal point
+                candleSeries.setMarkers([{
+                    time: lastTime,
+                    position: signal.action === 'BUY' ? 'belowBar' : 'aboveBar',
+                    color: signal.action === 'BUY' ? '#00d4aa' : '#ff4757',
+                    shape: signal.action === 'BUY' ? 'arrowUp' : 'arrowDown',
+                    text: `${signal.action} ${signal.confidence}%`,
+                }]);
+            }
+        } catch (signalError) {
+            console.log('Signal overlay skipped:', signalError);
+        }
+
         priceChart.timeScale().fitContent();
 
         // RSI Chart
