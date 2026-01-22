@@ -384,18 +384,19 @@ async function loadChartData() {
             const signalResponse = await fetch(`${API_BASE}/api/signal/${currentInstrument}`);
             const signalData = await signalResponse.json();
 
-            if (signalData.signal && signalData.signal.action !== 'HOLD') {
+            if (signalData.signal) {
                 const signal = signalData.signal;
                 const lastTime = new Date(data.timestamps[data.timestamps.length - 1]).getTime() / 1000;
+                const isSignal = signal.action !== 'HOLD';
 
-                // Entry line (current price)
+                // Entry line
                 candleSeries.createPriceLine({
                     price: signal.entry,
-                    color: signal.action === 'BUY' ? '#00d4aa' : '#ff4757',
-                    lineWidth: 2,
-                    lineStyle: 0, // Solid
+                    color: isSignal ? (signal.action === 'BUY' ? '#00d4aa' : '#ff4757') : '#606070',
+                    lineWidth: isSignal ? 2 : 1,
+                    lineStyle: isSignal ? 0 : 2, // Solid if signal, dashed if potential
                     axisLabelVisible: true,
-                    title: `${signal.action} Entry`,
+                    title: isSignal ? `${signal.action} Entry` : 'Potential Entry',
                 });
 
                 // Stop Loss line
@@ -403,7 +404,7 @@ async function loadChartData() {
                     price: signal.stopLoss,
                     color: '#ff4757',
                     lineWidth: 1,
-                    lineStyle: 2, // Dashed
+                    lineStyle: 2,
                     axisLabelVisible: true,
                     title: 'Stop Loss',
                 });
@@ -413,7 +414,7 @@ async function loadChartData() {
                     price: signal.target1,
                     color: '#00d4aa',
                     lineWidth: 1,
-                    lineStyle: 2, // Dashed
+                    lineStyle: 2,
                     axisLabelVisible: true,
                     title: 'Target 1',
                 });
@@ -423,19 +424,23 @@ async function loadChartData() {
                     price: signal.target2,
                     color: '#00d4aa',
                     lineWidth: 1,
-                    lineStyle: 2, // Dashed
+                    lineStyle: 2,
                     axisLabelVisible: true,
                     title: 'Target 2',
                 });
 
-                // Add marker at the signal point
-                candleSeries.setMarkers([{
-                    time: lastTime,
-                    position: signal.action === 'BUY' ? 'belowBar' : 'aboveBar',
-                    color: signal.action === 'BUY' ? '#00d4aa' : '#ff4757',
-                    shape: signal.action === 'BUY' ? 'arrowUp' : 'arrowDown',
-                    text: `${signal.action} ${signal.confidence}%`,
-                }]);
+                // Add marker only if it's a real signal
+                if (isSignal) {
+                    candleSeries.setMarkers([{
+                        time: lastTime,
+                        position: signal.action === 'BUY' ? 'belowBar' : 'aboveBar',
+                        color: signal.action === 'BUY' ? '#00d4aa' : '#ff4757',
+                        shape: signal.action === 'BUY' ? 'arrowUp' : 'arrowDown',
+                        text: `${signal.action} ${signal.confidence}%`,
+                    }]);
+                } else {
+                    candleSeries.setMarkers([]);
+                }
             }
         } catch (signalError) {
             console.log('Signal overlay skipped:', signalError);

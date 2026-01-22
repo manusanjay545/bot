@@ -179,29 +179,31 @@ def api_signal(instrument):
         # Determine signal
         total_score = bullish_score - bearish_score
         
-        if total_score >= 3:
-            action = 'BUY'
-            confidence = min(90, 50 + total_score * 10)
+        # Calculate levels based on direction even if confidence is low
+        if total_score >= 0:
+            # Bullish bias
             stop_loss = current_price - (atr * 1.5)
             target_1 = current_price + (atr * 2)
             target_2 = current_price + (atr * 3)
-        elif total_score <= -3:
-            action = 'SELL'
-            confidence = min(90, 50 + abs(total_score) * 10)
+            risk_reward = (target_1 - current_price) / (current_price - stop_loss)
+        else:
+            # Bearish bias
             stop_loss = current_price + (atr * 1.5)
             target_1 = current_price - (atr * 2)
             target_2 = current_price - (atr * 3)
+            risk_reward = (current_price - target_1) / (stop_loss - current_price)
+
+        if total_score >= 3:
+            action = 'BUY'
+            confidence = min(90, 50 + total_score * 10)
+        elif total_score <= -3:
+            action = 'SELL'
+            confidence = min(90, 50 + abs(total_score) * 10)
         else:
             action = 'HOLD'
             confidence = 0
-            stop_loss = target_1 = target_2 = current_price
             if not reasoning:
                 reasoning = ['No clear directional signal - wait for better setup']
-        
-        # Calculate risk/reward
-        risk = abs(current_price - stop_loss)
-        reward = abs(target_1 - current_price)
-        risk_reward = reward / risk if risk > 0 else 0
         
         return jsonify({
             'signal': {
