@@ -8,6 +8,7 @@ let currentDays = 7;
 let priceChart = null;
 let rsiChart = null;
 let macdChart = null;
+let autoRefreshInterval = null;
 
 // API base URL
 const API_BASE = '';
@@ -18,9 +19,58 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadAllData();
 
-    // Auto-refresh every 5 minutes
-    setInterval(() => loadAllData(), 5 * 60 * 1000);
+    // Auto-refresh every 1 minute for live market data
+    autoRefreshInterval = setInterval(() => {
+        loadAllData();
+        updateLiveIndicator();
+    }, 60 * 1000);
+
+    // Update live indicator
+    updateLiveIndicator();
 });
+
+function updateLiveIndicator() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const day = now.getDay();
+
+    // Market hours: 9:15 AM to 3:30 PM IST, Monday to Friday
+    const isMarketHours = day >= 1 && day <= 5 &&
+        ((hours === 9 && minutes >= 15) || (hours > 9 && hours < 15) || (hours === 15 && minutes <= 30));
+
+    const statusEl = document.getElementById('api-status');
+    const liveBadge = document.getElementById('live-badge');
+    const lastUpdate = document.getElementById('last-update');
+
+    if (statusEl) {
+        if (isMarketHours) {
+            statusEl.innerHTML = '🟢 LIVE';
+            statusEl.className = 'online';
+        } else {
+            statusEl.innerHTML = '🔴 Market Closed';
+            statusEl.className = 'offline';
+        }
+    }
+
+    if (liveBadge) {
+        if (isMarketHours) {
+            liveBadge.textContent = '● LIVE';
+            liveBadge.classList.remove('closed');
+        } else {
+            liveBadge.textContent = '● CLOSED';
+            liveBadge.classList.add('closed');
+        }
+    }
+
+    if (lastUpdate) {
+        lastUpdate.textContent = now.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+}
 
 /**
  * Initialize Lightweight Charts

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RL Trading Bot - Nifty & Banknifty</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.min.js"></script>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -17,6 +20,7 @@
                 <span class="logo-icon">🤖</span>
                 <h1>RL Trading Bot</h1>
                 <span class="badge">AI Powered</span>
+                <span class="badge live-badge" id="live-badge">● LIVE</span>
             </div>
             <div class="header-controls">
                 <div class="instrument-selector">
@@ -138,11 +142,14 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>⚠️ <strong>Disclaimer:</strong> This bot is for educational purposes only. Trading involves significant risk.</p>
-            <p class="status">Status: <span id="api-status">Connecting...</span></p>
+            <p>⚠️ <strong>Disclaimer:</strong> This bot is for educational purposes only. Trading involves significant
+                risk.</p>
+            <p class="status"><span id="api-status">Connecting...</span> | Last Update: <span id="last-update">--</span>
+            </p>
         </div>
     </footer>
 
     <script src="/static/app.js"></script>
 </body>
+
 </html>

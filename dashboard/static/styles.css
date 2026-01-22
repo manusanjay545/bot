@@ -8,35 +8,35 @@
     --bg-secondary: #12121a;
     --bg-card: #1a1a24;
     --bg-elevated: #22222e;
-    
+
     --text-primary: #ffffff;
     --text-secondary: #a0a0b0;
     --text-muted: #606070;
-    
+
     --accent-primary: #00d4aa;
     --accent-secondary: #7c3aed;
     --accent-gradient: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-    
+
     --success: #00d4aa;
     --danger: #ff4757;
     --warning: #ffa502;
     --info: #3498db;
-    
+
     --border-color: #2a2a3a;
-    
+
     /* Spacing */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
-    
+
     /* Border Radius */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
-    
+
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -108,6 +108,30 @@ body {
     padding: 0.2rem 0.5rem;
     border-radius: 20px;
     text-transform: uppercase;
+}
+
+.live-badge {
+    background: var(--success);
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+.live-badge.closed {
+    background: var(--danger);
+    animation: none;
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.7);
+    }
+
+    50% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 8px rgba(0, 212, 170, 0);
+    }
 }
 
 .header-controls {
@@ -577,8 +601,15 @@ body {
    Animations
    ===================================================== */
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .loading {
@@ -586,8 +617,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .fade-in {
@@ -601,17 +639,17 @@ body {
     .main-content {
         padding: var(--spacing-md);
     }
-    
+
     .signal-header {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .signal-confidence {
         margin-left: 0;
         text-align: center;
     }
-    
+
     .stat-value {
         font-size: 1.5rem;
     }
