@@ -29,21 +29,35 @@ CORS(app)
 fetcher = DataFetcher()
 
 def add_indicators(df):
-    """Add all technical indicators"""
-    df = OscillatorCalculator().add_oscillator_features(df)
-    df = MovingAverageCalculator().add_ma_features(df)
-    df = VolatilityCalculator().add_volatility_features(df)
-    df = PatternRecognizer().add_pattern_features(df)
-    df = FibonacciCalculator().add_fibonacci_features(df)
-    return df.dropna()
+    """Add technical indicators (simplified for dashboard)"""
+    try:
+        df = df.copy()
+        df = OscillatorCalculator().add_oscillator_features(df)
+        df = MovingAverageCalculator().add_ma_features(df)
+        df = VolatilityCalculator().add_volatility_features(df)
+        df = PatternRecognizer().add_pattern_features(df)
+        # Use fillna to keep data, skip rows only at the beginning
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+        df[numeric_cols] = df[numeric_cols].fillna(method='bfill').fillna(0)
+        return df
+    except Exception as e:
+        print(f"Error adding indicators: {e}")
+        return df
 
 def get_market_data(instrument='NIFTY', days=30):
     """Fetch and prepare market data"""
-    df = fetcher.fetch_historical_data(instrument, days=days, use_cache=False)
-    if df.empty:
+    try:
+        df = fetcher.fetch_historical_data(instrument, days=days, use_cache=False)
+        if df is None or df.empty:
+            return None
+        df = add_indicators(df)
+        if df.empty:
+            # Return raw data if indicators fail
+            df = fetcher.fetch_historical_data(instrument, days=days, use_cache=False)
+        return df
+    except Exception as e:
+        print(f"Error getting market data: {e}")
         return None
-    df = add_indicators(df)
-    return df
 
 @app.route('/')
 def index():
