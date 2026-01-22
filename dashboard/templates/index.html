@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL Trading Bot - Nifty & Banknifty</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <h1>RL Trading Bot</h1>
+                <span class="badge">AI Powered</span>
+            </div>
+            <div class="header-controls">
+                <div class="instrument-selector">
+                    <button class="instrument-btn active" data-instrument="NIFTY">NIFTY 50</button>
+                    <button class="instrument-btn" data-instrument="BANKNIFTY">BANK NIFTY</button>
+                </div>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <span class="refresh-icon">↻</span> Refresh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Stats Cards -->
+        <section class="stats-grid">
+            <div class="stat-card price-card">
+                <div class="stat-label">Current Price</div>
+                <div class="stat-value" id="current-price">--</div>
+                <div class="stat-change" id="price-change">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">RSI (14)</div>
+                <div class="stat-value" id="rsi-value">--</div>
+                <div class="stat-status" id="rsi-status">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Trend</div>
+                <div class="stat-value" id="trend-value">--</div>
+                <div class="stat-status" id="trend-status">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Volatility</div>
+                <div class="stat-value" id="volatility-value">--</div>
+                <div class="stat-status" id="volatility-status">ATR</div>
+            </div>
+        </section>
+
+        <!-- Signal Card -->
+        <section class="signal-section">
+            <div class="signal-card" id="signal-card">
+                <div class="signal-header">
+                    <div class="signal-icon" id="signal-icon">⏸️</div>
+                    <div class="signal-info">
+                        <h2 id="signal-action">LOADING...</h2>
+                        <p id="signal-time">Fetching latest signal...</p>
+                    </div>
+                    <div class="signal-confidence">
+                        <span class="confidence-label">Confidence</span>
+                        <span class="confidence-value" id="confidence-value">--%</span>
+                    </div>
+                </div>
+                <div class="signal-details" id="signal-details">
+                    <div class="signal-levels">
+                        <div class="level-item">
+                            <span class="level-label">Entry</span>
+                            <span class="level-value" id="entry-price">--</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-label">Stop Loss</span>
+                            <span class="level-value loss" id="stop-loss">--</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-label">Target 1</span>
+                            <span class="level-value profit" id="target-1">--</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-label">Target 2</span>
+                            <span class="level-value profit" id="target-2">--</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-label">Risk:Reward</span>
+                            <span class="level-value" id="risk-reward">--</span>
+                        </div>
+                    </div>
+                    <div class="signal-reasoning">
+                        <h4>📊 Analysis</h4>
+                        <ul id="reasoning-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h3>📈 Price Chart (15min)</h3>
+                <div class="chart-controls">
+                    <button class="chart-btn active" data-days="7">1W</button>
+                    <button class="chart-btn" data-days="14">2W</button>
+                    <button class="chart-btn" data-days="30">1M</button>
+                </div>
+            </div>
+            <div class="chart-container" id="price-chart"></div>
+        </section>
+
+        <!-- Indicators Section -->
+        <section class="indicators-section">
+            <div class="indicator-chart">
+                <h4>RSI (14)</h4>
+                <div class="chart-container small" id="rsi-chart"></div>
+            </div>
+            <div class="indicator-chart">
+                <h4>MACD</h4>
+                <div class="chart-container small" id="macd-chart"></div>
+            </div>
+        </section>
+
+        <!-- Patterns Section -->
+        <section class="patterns-section">
+            <h3>🕯️ Detected Patterns</h3>
+            <div class="patterns-grid" id="patterns-grid">
+                <div class="pattern-card loading">Loading patterns...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>⚠️ <strong>Disclaimer:</strong> This bot is for educational purposes only. Trading involves significant risk.</p>
+            <p class="status">Status: <span id="api-status">Connecting...</span></p>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
