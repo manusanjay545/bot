@@ -140,6 +140,35 @@ body {
     align-items: center;
 }
 
+.search-container {
+    display: flex;
+    gap: var(--spacing-xs);
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+#symbol-search {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    outline: none;
+    width: 200px;
+    font-family: inherit;
+}
+
+#search-btn {
+    background: var(--accent-gradient);
+    border: none;
+    color: var(--bg-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+}
+
 .instrument-selector {
     display: flex;
     background: var(--bg-card);

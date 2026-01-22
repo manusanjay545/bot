@@ -23,9 +23,14 @@
                 <span class="badge live-badge" id="live-badge">● LIVE</span>
             </div>
             <div class="header-controls">
+                <div class="search-container">
+                    <input type="text" id="symbol-search" placeholder="Search (e.g. RELIANCE)..." />
+                    <button id="search-btn">🔍</button>
+                </div>
                 <div class="instrument-selector">
-                    <button class="instrument-btn active" data-instrument="NIFTY">NIFTY 50</button>
-                    <button class="instrument-btn" data-instrument="BANKNIFTY">BANK NIFTY</button>
+                    <button class="instrument-btn active" data-instrument="NIFTY">NIFTY</button>
+                    <button class="instrument-btn" data-instrument="BANKNIFTY">BANKNIFTY</button>
+                    <button class="instrument-btn" data-instrument="RELIANCE">RELIANCE</button>
                 </div>
                 <button class="refresh-btn" onclick="refreshData()">
                     <span class="refresh-icon">↻</span> Refresh

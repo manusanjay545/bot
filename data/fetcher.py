@@ -57,9 +57,15 @@ class DataFetcher:
         if interval is None:
             interval = self.timeframe
             
+        # Resolve symbol
         symbol = self.instruments.get(instrument.upper())
         if not symbol:
-            raise ValueError(f"Unknown instrument: {instrument}")
+            # If not in map, assume it's a direct ticker
+            # If it looks like an Indian stock (no suffix), append .NS
+            if not instrument.startswith('^') and '.' not in instrument:
+                symbol = f"{instrument.upper()}.NS"
+            else:
+                symbol = instrument.upper()
         
         # Check cache first
         cache_file = self._get_cache_path(instrument, interval)

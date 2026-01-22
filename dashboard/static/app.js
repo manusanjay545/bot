@@ -144,6 +144,27 @@ function setupEventListeners() {
         });
     });
 
+    // Search functionality
+    const searchBtn = document.getElementById('search-btn');
+    const searchInput = document.getElementById('symbol-search');
+
+    if (searchBtn && searchInput) {
+        const handleSearch = () => {
+            const symbol = searchInput.value.trim().toUpperCase();
+            if (symbol) {
+                // Remove active class from buttons
+                document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+                currentInstrument = symbol;
+                loadAllData();
+            }
+        };
+
+        searchBtn.addEventListener('click', handleSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+    }
+
     // Chart timeframe buttons
     document.querySelectorAll('.chart-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
